@@ -14,7 +14,7 @@ object WordCountScala {
     val sc = new SparkContext(conf)
 
     // 1. 加载文件
-    val rdd1 = sc.textFile("file:hello.txt")
+    val rdd1 = sc.textFile("hello.txt")
     // 2. 拆分单词
     val rdd2 = rdd1.flatMap(_.split(" "))
     // 3. 初始化每个单词数量
