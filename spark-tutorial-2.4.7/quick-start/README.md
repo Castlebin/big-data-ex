@@ -4,3 +4,7 @@
 
     sbt package
 
+## 官网例子中 sbt scala 的版本错了 Spark 2.4.7 中的 scala 版本号没那么高，坑人吗？
+改成 scalaVersion := "2.11.12" 
+
+
