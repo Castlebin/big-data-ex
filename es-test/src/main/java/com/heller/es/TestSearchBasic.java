@@ -3,6 +3,8 @@ package com.heller.es;
 import java.io.IOException;
 
 import org.apache.http.HttpHost;
+import org.elasticsearch.action.get.GetRequest;
+import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.client.RequestOptions;
@@ -33,6 +35,9 @@ public class TestSearchBasic {
 
         // 3. 添加数据
         addData(esClient);
+
+        // 4. 查询数据
+        queryData(esClient);
 
         // 关闭 ES client
         esClient.close();
@@ -68,10 +73,19 @@ public class TestSearchBasic {
         user.setAge(18);
         user.setSex("男");
 
+        // 要将数据转为 JSON 后才能添加到 ES
         request.source(OBJECT_MAPPER.writeValueAsString(user), XContentType.JSON);
 
         IndexResponse index = esClient.index(request, RequestOptions.DEFAULT);
-        System.out.println(index.getResult());
+        System.out.println("插入结果" + index.getResult());
+    }
+
+    private static void queryData(RestHighLevelClient esClient) throws IOException {
+        GetRequest request = new GetRequest();
+        request.index("user").id("1001");
+
+        GetResponse response = esClient.get(request, RequestOptions.DEFAULT);
+        System.out.println("查询结果：" + response.getSourceAsString());
     }
 
 }
