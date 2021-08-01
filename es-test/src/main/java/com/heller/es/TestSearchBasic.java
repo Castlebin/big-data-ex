@@ -3,6 +3,10 @@ package com.heller.es;
 import java.io.IOException;
 
 import org.apache.http.HttpHost;
+import org.elasticsearch.action.bulk.BulkRequest;
+import org.elasticsearch.action.bulk.BulkResponse;
+import org.elasticsearch.action.delete.DeleteRequest;
+import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.get.GetRequest;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexRequest;
@@ -38,6 +42,15 @@ public class TestSearchBasic {
 
         // 4. 查询数据
         queryData(esClient);
+
+        // 5. 删除数据
+        deleteData(esClient);
+
+        // 6. 批量插入
+        addDataBatch(esClient);
+
+        // 7. 批量删除
+        deleteDataBatch(esClient);
 
         // 关闭 ES client
         esClient.close();
@@ -77,7 +90,7 @@ public class TestSearchBasic {
         request.source(OBJECT_MAPPER.writeValueAsString(user), XContentType.JSON);
 
         IndexResponse index = esClient.index(request, RequestOptions.DEFAULT);
-        System.out.println("插入结果" + index.getResult());
+        System.out.println("插入结果: " + index.getResult());
     }
 
     private static void queryData(RestHighLevelClient esClient) throws IOException {
@@ -86,6 +99,35 @@ public class TestSearchBasic {
 
         GetResponse response = esClient.get(request, RequestOptions.DEFAULT);
         System.out.println("查询结果：" + response.getSourceAsString());
+    }
+
+    private static void deleteData(RestHighLevelClient esClient) throws IOException {
+        DeleteRequest request = new DeleteRequest();
+        request.index("user").id("1001");
+
+        DeleteResponse response = esClient.delete(request, RequestOptions.DEFAULT);
+        System.out.println("删除数据 结果：" + response.getResult());
+    }
+
+    private static void addDataBatch(RestHighLevelClient esClient) throws IOException {
+        BulkRequest request = new BulkRequest();
+
+        request.add(new IndexRequest().index("user").id("1001").source(XContentType.JSON, "name", "zhangsan"));
+        request.add(new IndexRequest().index("user").id("1002").source(XContentType.JSON, "name", "lisi"));
+        request.add(new IndexRequest().index("user").id("1003").source(XContentType.JSON, "name", "wangwu"));
+
+        BulkResponse response = esClient.bulk(request, RequestOptions.DEFAULT);
+        System.out.println("批量添加，返回：" + OBJECT_MAPPER.writeValueAsString(response.getItems()));
+    }
+
+    private static void deleteDataBatch(RestHighLevelClient esClient) throws IOException {
+        BulkRequest request = new BulkRequest();
+
+        request.add(new DeleteRequest().index("user").id("1002"));
+        request.add(new DeleteRequest().index("user").id("1003"));
+
+        BulkResponse response = esClient.bulk(request, RequestOptions.DEFAULT);
+        System.out.println("批量删除，返回：" + OBJECT_MAPPER.writeValueAsString(response.getItems()));
     }
 
 }
