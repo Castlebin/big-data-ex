@@ -55,6 +55,30 @@ under the License.
 		</repository>
 	</repositories>
 
+	<profiles>
+		<!-- 在IDE中运行，也可以采用激活 profile 的方式，激活这个 profile 即可-->
+		<profile>
+			<id>ide-run</id>
+			<dependencies>
+				<dependency>
+					<groupId>org.apache.flink</groupId>
+					<artifactId>flink-streaming-java_${scala.binary.version}</artifactId>
+					<version>${flink.version}</version>
+					<!-- 注意！在IDE中本地运行时，要注释掉下面这行，否则会报错 java.lang.NoClassDefFoundError: org/apache/flink/streaming/api/functions/source/SourceFunction -->
+					<!--	<scope>provided</scope>  -->
+				</dependency>
+				<dependency>
+					<groupId>org.apache.flink</groupId>
+					<artifactId>flink-clients_${scala.binary.version}</artifactId>
+					<version>${flink.version}</version>
+					<!-- 注意！在IDE中本地运行时，要注释掉下面这行，否则会报错 java.lang.NoClassDefFoundError: org/apache/flink/streaming/api/functions/source/SourceFunction -->
+					<!--	<scope>provided</scope>  -->
+				</dependency>
+			</dependencies>
+		</profile>
+
+	</profiles>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.apache.flink</groupId>
@@ -68,14 +92,14 @@ under the License.
 			<artifactId>flink-streaming-java_${scala.binary.version}</artifactId>
 			<version>${flink.version}</version>
 			<!-- 注意！在IDE中本地运行时，要注释掉下面这行，否则会报错 java.lang.NoClassDefFoundError: org/apache/flink/streaming/api/functions/source/SourceFunction -->
-		<!--	<scope>provided</scope>  -->
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-clients_${scala.binary.version}</artifactId>
 			<version>${flink.version}</version>
 			<!-- 注意！在IDE中本地运行时，要注释掉下面这行，否则会报错 java.lang.NoClassDefFoundError: org/apache/flink/streaming/api/functions/source/SourceFunction -->
-			<!--	<scope>provided</scope>  -->
+			<scope>provided</scope>
 		</dependency>
 
 		<!-- Add connector dependencies here. They must be in the default scope (compile). -->
