@@ -41,6 +41,8 @@ public class FraudDetector extends KeyedProcessFunction<Long, Transaction, Alert
 
 	// 保存状态
 	private transient ValueState<Boolean> flagState;
+	// 保存定时器时间状态
+	private transient ValueState<Long> timerState;
 
 	@Override
 	public void processElement(
@@ -60,12 +62,40 @@ public class FraudDetector extends KeyedProcessFunction<Long, Transaction, Alert
 			}
 
 			// 清理掉状态
-			flagState.clear();
+			cleanUp(context);
 		}
 		if (transaction.getAmount() < SMALL_AMOUNT) {
 			// 设置状态，本次交易为小额交易
 			flagState.update(true);
+
+			// 设置定时器和定时器状态变量（注意：这里使用的是 processingTime，往后推迟 1 分钟）
+			long timer = context.timerService().currentProcessingTime() + ONE_MINUTE;
+			context.timerService().registerProcessingTimeTimer(timer);
+			timerState.update(timer);
 		}
+	}
+
+	/**
+	 * 当定时器触发时，将会调用 onTimer 方法。 通过重写这个方法来实现一个你自己的重置状态的回调逻辑。
+	 */
+	@Override
+	public void onTimer(long timestamp, OnTimerContext ctx, Collector<Alert> out) {
+		// remove flag after 1 minute
+		timerState.clear();
+		flagState.clear();
+	}
+
+	/**
+	 * 自定义的清理逻辑：1. 取消（删除）定时器；2. 清理状态变量
+	 */
+	private void cleanUp(Context ctx) throws Exception {
+		// 删除定时器
+		Long timer = timerState.value();
+		ctx.timerService().deleteProcessingTimeTimer(timer);
+
+		// 清理状态
+		timerState.clear();
+		flagState.clear();
 	}
 
 	@Override
@@ -74,5 +104,11 @@ public class FraudDetector extends KeyedProcessFunction<Long, Transaction, Alert
 				"flag",
 				Types.BOOLEAN);
 		flagState = getRuntimeContext().getState(flagDescriptor);
+
+		ValueStateDescriptor<Long> timerDescriptor = new ValueStateDescriptor<>(
+				"timer-state",
+				Types.LONG
+		);
+		timerState = getRuntimeContext().getState(timerDescriptor);
 	}
 }
