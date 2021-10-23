@@ -18,6 +18,11 @@
 
 package spendreport;
 
+
+import org.apache.flink.api.common.state.ValueState;
+import org.apache.flink.api.common.state.ValueStateDescriptor;
+import org.apache.flink.api.common.typeinfo.Types;
+import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
 import org.apache.flink.util.Collector;
 import org.apache.flink.walkthrough.common.entity.Alert;
@@ -34,15 +39,40 @@ public class FraudDetector extends KeyedProcessFunction<Long, Transaction, Alert
 	private static final double LARGE_AMOUNT = 500.00;
 	private static final long ONE_MINUTE = 60 * 1000;
 
+	// 保存状态
+	private transient ValueState<Boolean> flagState;
+
 	@Override
 	public void processElement(
 			Transaction transaction,
 			Context context,
 			Collector<Alert> collector) throws Exception {
 
-		Alert alert = new Alert();
-		alert.setId(transaction.getAccountId());
+		// 1. 获取现在的状态（上次交易状态是否为小额交易）
+		Boolean lastTransactionWasSmall = flagState.value();
+		if (lastTransactionWasSmall != null) {
+			if (transaction.getAmount() > LARGE_AMOUNT) {
+				// 2. 上次交易为小额交易，本次为大额交易，生成一条警报
+				Alert alert = new Alert();
+				alert.setId(transaction.getAccountId());
 
-		collector.collect(alert);
+				collector.collect(alert);
+			}
+
+			// 清理掉状态
+			flagState.clear();
+		}
+		if (transaction.getAmount() < SMALL_AMOUNT) {
+			// 设置状态，本次交易为小额交易
+			flagState.update(true);
+		}
+	}
+
+	@Override
+	public void open(Configuration parameters) throws Exception {
+		ValueStateDescriptor<Boolean> flagDescriptor = new ValueStateDescriptor<>(
+				"flag",
+				Types.BOOLEAN);
+		flagState = getRuntimeContext().getState(flagDescriptor);
 	}
 }
