@@ -134,7 +134,7 @@ under the License.
                 </configuration>
             </plugin>
 
-            <!-- Java code style -->
+            <!-- Java code style --><!--
             <plugin>
                 <groupId>com.diffplug.spotless</groupId>
                 <artifactId>spotless-maven-plugin</artifactId>
@@ -157,7 +157,7 @@ under the License.
                         </goals>
                     </execution>
                 </executions>
-            </plugin>
+            </plugin>-->
         </plugins>
     </build>
 

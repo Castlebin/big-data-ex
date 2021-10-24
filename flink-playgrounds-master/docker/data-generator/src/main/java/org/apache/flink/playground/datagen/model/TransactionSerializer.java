@@ -23,26 +23,30 @@ import java.util.Map;
 
 import org.apache.kafka.common.serialization.Serializer;
 
-/** Serializes a {@link Transaction} into a CSV record. */
+/**
+ * Serializes a {@link Transaction} into a CSV record.
+ */
 public class TransactionSerializer implements Serializer<Transaction> {
 
-  private static final DateTimeFormatter formatter =
-      DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private static final DateTimeFormatter formatter =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-  @Override
-  public void configure(Map<String, ?> map, boolean b) {}
+    @Override
+    public void configure(Map<String, ?> map, boolean b) {
+    }
 
-  @Override
-  public byte[] serialize(String s, Transaction transaction) {
-    String csv =
-        String.format(
-            // Avoiding spaces here to workaround FLINK-23073
-            "%s,%s,%s",
-            transaction.accountId, transaction.amount, transaction.timestamp.format(formatter));
+    @Override
+    public byte[] serialize(String s, Transaction transaction) {
+        String csv =
+                String.format(
+                        // Avoiding spaces here to workaround FLINK-23073
+                        "%s,%s,%s",
+                        transaction.accountId, transaction.amount, transaction.timestamp.format(formatter));
 
-    return csv.getBytes();
-  }
+        return csv.getBytes();
+    }
 
-  @Override
-  public void close() {}
+    @Override
+    public void close() {
+    }
 }
