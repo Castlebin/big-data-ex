@@ -1,5 +1,7 @@
 package com.heller.wc
 
+import org.apache.spark.{SparkConf, SparkContext}
+
 object Spark01_WordCount {
   def main(args: Array[String]): Unit = {
     // 创建 Spark 配置
