@@ -1,0 +1,227 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+plugins {
+    id 'com.github.johnrengelman.shadow' version '7.0.0' apply false
+    id "com.diffplug.spotless" version "5.14.2" apply false
+}
+
+description = "Flink Training Exercises"
+
+allprojects {
+    group = 'org.apache.flink'
+    version = '1.14-SNAPSHOT'
+
+    apply plugin: 'com.diffplug.spotless'
+
+    spotless {
+        format 'misc', {
+            // define the files to apply `misc` to
+            target '*.gradle', '*.md', '.gitignore'
+
+            // define the steps to apply to those files
+            trimTrailingWhitespace()
+            indentWithSpaces(4)
+            endWithNewline()
+        }
+    }
+}
+
+subprojects {
+    apply plugin: 'java'
+    if (project.properties['org.gradle.project.enable_scala'].trim() == 'true') {
+        apply plugin: 'scala'
+    }
+    apply plugin: 'com.github.johnrengelman.shadow'
+    apply plugin: 'checkstyle'
+    apply plugin: 'eclipse'
+
+    ext {
+        javaVersion = '1.8'
+        flinkVersion = '1.14.0'
+        scalaBinaryVersion = '2.12'
+        log4jVersion = '2.12.1'
+        junitVersion = '4.13'
+    }
+
+    sourceCompatibility = javaVersion
+    targetCompatibility = javaVersion
+    tasks.withType(JavaCompile) {
+        options.encoding = 'UTF-8'
+    }
+
+    // declare where to find the dependencies of your project
+    repositories {
+        // for access from China, you may need to uncomment this line
+        // maven { url 'https://maven.aliyun.com/repository/public/' }
+        mavenCentral()
+        maven {
+            url "https://repository.apache.org/content/repositories/snapshots/"
+            mavenContent {
+                snapshotsOnly()
+            }
+        }
+    }
+
+    // common set of dependencies
+    dependencies {
+        shadow "org.apache.logging.log4j:log4j-slf4j-impl:${log4jVersion}"
+        shadow "org.apache.logging.log4j:log4j-api:${log4jVersion}"
+        shadow "org.apache.logging.log4j:log4j-core:${log4jVersion}"
+
+        shadow "org.apache.flink:flink-clients_${scalaBinaryVersion}:${flinkVersion}"
+        shadow "org.apache.flink:flink-java:${flinkVersion}"
+        shadow "org.apache.flink:flink-streaming-java_${scalaBinaryVersion}:${flinkVersion}"
+        shadow "org.apache.flink:flink-streaming-scala_${scalaBinaryVersion}:${flinkVersion}"
+
+        if (project != project(":common")) {
+            implementation project(path: ':common')
+            testImplementation(project(":common")) {
+                capabilities { requireCapability("$group:common-test") }
+            }
+        }
+    }
+
+    // add solution source dirs:
+    sourceSets {
+        main.java.srcDirs += 'src/solution/java'
+        tasks.withType(ScalaCompile) {
+            main.scala.srcDirs += 'src/solution/scala'
+        }
+
+        // Add shadow configuration to runtime class path so that the
+        // dynamically-generated tasks by IntelliJ are able to run and have
+        // all dependencies they need. (Luckily, this does not influence what
+        // ends up in the final shadowJar.)
+        main.runtimeClasspath += configurations.shadow
+
+        test.compileClasspath += configurations.shadow
+        test.runtimeClasspath += configurations.shadow
+    }
+
+    project.plugins.withId('application') {
+        ['javaExerciseClassName', 'javaSolutionClassName'].each { property ->
+            createTrainingRunTask(project, property)
+        }
+    }
+    pluginManager.withPlugin('scala') {
+        project.plugins.withId('application') {
+            ['scalaExerciseClassName', 'scalaSolutionClassName'].each { property ->
+                createTrainingRunTask(project, property)
+            }
+        }
+    }
+
+    spotless {
+        java {
+            googleJavaFormat('1.7').aosp()
+
+            // \# refers to static imports
+            importOrder('org.apache.flink', 'org.apache.flink.shaded', '', 'javax', 'java', 'scala', '\\#')
+            removeUnusedImports()
+
+            targetExclude("**/generated*/*.java")
+        }
+    }
+
+    pluginManager.withPlugin('scala') {
+        spotless {
+            scala {
+                scalafmt('2.7.5').configFile("${rootProject.projectDir}/.scalafmt.conf")
+
+                licenseHeader '/*\n' +
+                        ' * Licensed to the Apache Software Foundation (ASF) under one\n' +
+                        ' * or more contributor license agreements.  See the NOTICE file\n' +
+                        ' * distributed with this work for additional information\n' +
+                        ' * regarding copyright ownership.  The ASF licenses this file\n' +
+                        ' * to you under the Apache License, Version 2.0 (the\n' +
+                        ' * "License"); you may not use this file except in compliance\n' +
+                        ' * with the License.  You may obtain a copy of the License at\n' +
+                        ' *\n' +
+                        ' *     http://www.apache.org/licenses/LICENSE-2.0\n' +
+                        ' *\n' +
+                        ' * Unless required by applicable law or agreed to in writing, software\n' +
+                        ' * distributed under the License is distributed on an "AS IS" BASIS,\n' +
+                        ' * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n' +
+                        ' * See the License for the specific language governing permissions and\n' +
+                        ' * limitations under the License.\n' +
+                        ' */\n', 'package '
+            }
+        }
+    }
+
+    jar {
+        manifest {
+            attributes 'Built-By': System.getProperty('user.name'),
+                    'Build-Jdk': System.getProperty('java.version')
+        }
+    }
+
+    shadowJar {
+        mergeServiceFiles()
+        dependencies {
+            exclude(dependency("org.apache.flink:force-shading"))
+            exclude(dependency('com.google.code.findbugs:jsr305'))
+            exclude(dependency('org.slf4j:.*'))
+            exclude(dependency('log4j:.*'))
+            exclude(dependency('org.apache.logging.log4j:log4j-to-slf4j'))
+            // already provided dependencies from serializer frameworks
+            exclude(dependency('com.esotericsoftware.kryo:kryo'))
+            exclude(dependency('javax.servlet:servlet-api')) // TODO: check if needed
+            exclude(dependency('org.apache.httpcomponents:httpclient')) // TODO: check if needed
+        }
+    }
+
+    assemble.dependsOn(shadowJar)
+}
+
+tasks.register('printRunTasks') {
+    println '------------------------------------------------------------'
+    println 'Flink Training Tasks runnable from root project \'' + project.name + '\''
+    println '------------------------------------------------------------'
+
+    subprojects.findAll { project ->
+        boolean first = true;
+        project.tasks.withType(JavaExec) { task ->
+            if (task.group == 'flink-training') {
+                if (first) {
+                    println ''
+                    println '> Subproject \'' + project.name + '\''
+                    first = false;
+                }
+                println './gradlew :' + project.name + ':' + task.name
+            }
+        }
+    }
+}
+
+static def void createTrainingRunTask(Project project, String property) {
+    if (project.ext.has(property)) {
+        project.tasks.create(name: classNamePropertyToTaskName(property), type: JavaExec) {
+            classpath = project.sourceSets.main.runtimeClasspath
+            mainClass = project.ext.get(property)
+            group = 'flink-training'
+        }
+    }
+}
+
+static def String classNamePropertyToTaskName(String property) {
+    return 'run' +
+            property.charAt(0).toString().toUpperCase() +
+            property.substring(1, property.lastIndexOf('ClassName'))
+
+}
