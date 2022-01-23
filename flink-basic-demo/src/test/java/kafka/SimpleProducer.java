@@ -8,13 +8,13 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
 
 /**
- * kafka 命令，进入 kafka 目录后 (为方便观察，以下命令都使用前台模式执行)：
- * 1. 启动 zookeeper ： bin/zookeeper-server-start.sh config/zookeeper.properties
- * 2. 启动 kafka server ： bin/zookeeper-server-start.sh config/zookeeper.properties
- * 3. （做实验，启动一个kafka生产者，可以往 topic 里发送消息，topic名字：simple-topic）：
- * bin/kafka-console-producer.sh --topic simple-topic --bootstrap-server localhost:9092
- * 4. 启动个 kafka 消费者，监听 topic，topic名字：simple-topic ，消费模式可以设置为从头开始（--from-beginning）
- * bin/kafka-console-consumer.sh --topic simple-topic --from-beginning --bootstrap-server localhost:9092
+ kafka 命令，进入 kafka 目录后 (为方便观察，以下命令都使用前台模式执行)：
+ 1. 启动 zookeeper ： bin/zookeeper-server-start.sh config/zookeeper.properties
+ 2. 启动 kafka server ： bin/zookeeper-server-start.sh config/zookeeper.properties
+ 3. （做实验，启动一个kafka生产者，可以往 topic 里发送消息，topic名字：simple-topic）：
+    bin/kafka-console-producer.sh --topic simple-topic --bootstrap-server localhost:9092
+ 4. 启动个 kafka 消费者，监听 topic，topic名字：simple-topic ，消费模式可以设置为从头开始（--from-beginning）
+    bin/kafka-console-consumer.sh --topic simple-topic --from-beginning --bootstrap-server localhost:9092
  */
 public class SimpleProducer {
 
