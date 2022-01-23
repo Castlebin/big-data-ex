@@ -3,8 +3,12 @@ package flink.source;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.flink.api.common.functions.FlatMapFunction;
+import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
+import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.util.Collector;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -57,5 +61,31 @@ public class SourceTests {
 
         env.execute();
     }
+
+    /**
+     * 结果并不是预期的，没事，简单体验而已
+     */
+    @Test
+    public void wordCountFile() throws Exception {
+        DataStreamSource<String> source = env.readTextFile("data/The_Little_Prince.txt");
+
+        SingleOutputStreamOperator<Tuple2<String, Integer>> dataStream = source.flatMap(new Splitter())
+                .keyBy(value -> value.f0)
+                .sum(1);
+
+        dataStream.print();
+
+        env.execute();
+    }
+
+    public static class Splitter implements FlatMapFunction<String, Tuple2<String, Integer>> {
+        @Override
+        public void flatMap(String sentence, Collector<Tuple2<String, Integer>> out) throws Exception {
+            for (String word: sentence.split(" ")) {
+                out.collect(new Tuple2<>(word, 1));
+            }
+        }
+    }
+
 
 }
