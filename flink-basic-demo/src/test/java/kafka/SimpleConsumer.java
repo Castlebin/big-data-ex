@@ -17,6 +17,7 @@ public class SimpleConsumer {
 
         while (true) {
             ConsumerRecords<String, String> msgList = consumer.poll(5000);
+            System.out.println("get msgList " + new Date());
             if (msgList != null && !msgList.isEmpty()) {
                 for (ConsumerRecord<String, String> record : msgList) {
                     System.out.println(new Date() + " : " + record.key() + " : " + record.value());
@@ -32,7 +33,7 @@ public class SimpleConsumer {
         props.put("enable.auto.commit", "true");    // 是否自动提交
         props.put("auto.commit.interval.ms", "1000");
         props.put("session.timeout.ms", "30000");
-        props.put("max.poll.records", 1000);
+        props.put("max.poll.records", 3);    // 每次最多拉取条数
         props.put("auto.offset.reset", "earliest"); // 设置从哪里开始消费
         props.put("key.deserializer", StringDeserializer.class.getName());
         props.put("value.deserializer", StringDeserializer.class.getName());
