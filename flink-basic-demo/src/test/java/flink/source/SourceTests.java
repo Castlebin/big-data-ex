@@ -63,6 +63,17 @@ public class SourceTests {
     }
 
     /**
+     * 4. 生成序列 作为 Source
+     */
+    @Test
+    public void testSequenceAsSource() throws Exception {
+        DataStreamSource<Long> source = env.generateSequence(1, 10);
+        source.print();
+
+        env.execute();
+    }
+
+    /**
      * 结果并不是预期的，没事，简单体验而已
      */
     @Test
