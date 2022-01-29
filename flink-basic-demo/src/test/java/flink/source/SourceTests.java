@@ -64,10 +64,18 @@ public class SourceTests {
 
     /**
      * 4. 生成序列 作为 Source
+     * generateSequence 废弃了，用 fromSequence 代替
      */
     @Test
     public void testSequenceAsSource() throws Exception {
         DataStreamSource<Long> source = env.generateSequence(1, 10);
+        source.print();
+
+        env.execute();
+    }
+    @Test
+    public void testSequenceAsSource2() throws Exception {
+        DataStreamSource<Long> source = env.fromSequence(1, 10);
         source.print();
 
         env.execute();
