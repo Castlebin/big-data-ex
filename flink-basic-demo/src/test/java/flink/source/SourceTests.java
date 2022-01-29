@@ -3,6 +3,7 @@ package flink.source;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.flink.api.common.RuntimeExecutionMode;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
@@ -82,11 +83,16 @@ public class SourceTests {
     }
 
     /**
-     * 结果并不是预期的，没事，简单体验而已
+     * 文本单词统计
+     * （流式处理，所以可以看到每来一条数据，就打印一次结果
+     *  hello-world.txt  共 11 条数据，每行 2 个单词，空格隔开，所以最后转化为 22 条数据
+     *  可以看到结果也是打印 22 次，可以每次都会统计下结果
+     *  看 hello 就可以知道了
+     * ）
      */
     @Test
     public void wordCountFile() throws Exception {
-        DataStreamSource<String> source = env.readTextFile("data/The_Little_Prince.txt");
+        DataStreamSource<String> source = env.readTextFile("data/hello-world.txt");
 
         SingleOutputStreamOperator<Tuple2<String, Integer>> dataStream = source.flatMap(new Splitter())
                 .keyBy(value -> value.f0)
@@ -95,6 +101,26 @@ public class SourceTests {
         dataStream.print();
 
         env.execute();
+    }
+
+    /**
+     * 文本单词统计
+     * （批处理，所有数据只输出一次结果，可以看到是正常的单词统计结果）
+     */
+    @Test
+    public void wordCountFile_2() throws Exception {
+        StreamExecutionEnvironment env_batch = StreamExecutionEnvironment.getExecutionEnvironment();
+        // 设置为 批处理模式 (这里也可以用 RuntimeExecutionMode.AUTOMATIC ，可以看到结果是一样的 )
+        env_batch.setRuntimeMode(RuntimeExecutionMode.BATCH);
+        DataStreamSource<String> source = env_batch.readTextFile("data/hello-world.txt");
+
+        SingleOutputStreamOperator<Tuple2<String, Integer>> dataStream = source.flatMap(new Splitter())
+                .keyBy(value -> value.f0)
+                .sum(1);
+
+        dataStream.print();
+
+        env_batch.execute();
     }
 
     public static class Splitter implements FlatMapFunction<String, Tuple2<String, Integer>> {
