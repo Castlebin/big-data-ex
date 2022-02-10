@@ -1,4 +1,4 @@
-package flink.learn.intro;
+package flink;
 
 import org.apache.flink.api.common.state.ValueState;
 import org.apache.flink.api.common.state.ValueStateDescriptor;
