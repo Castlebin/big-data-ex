@@ -44,6 +44,7 @@ import org.junit.Test;
  */
 public class SpendReportTest {
 
+    // 一个固定时间作为初始值，方便测试
     private static final LocalDateTime DATE_TIME = LocalDateTime.of(2020, 1, 1, 0, 0);
     
     @Test
@@ -93,4 +94,5 @@ public class SpendReportTest {
             throw new RuntimeException("Failed to materialize results", e);
         }
     }
+
 }

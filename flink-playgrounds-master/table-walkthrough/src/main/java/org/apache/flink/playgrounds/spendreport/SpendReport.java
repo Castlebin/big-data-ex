@@ -51,9 +51,12 @@ public class SpendReport {
     }
 
     public static void main(String[] args) throws Exception {
+        // flink Table API 使用 TableEnvironment 作为执行环境
         EnvironmentSettings settings = EnvironmentSettings.newInstance().build();
         TableEnvironment tEnv = TableEnvironment.create(settings);
 
+        // 启动时建立好两张表，一张作为数据源、一张作为结果表
+        // 使用 kafka 作为数据源，在 flink 中建立一张交易表 transactions
         tEnv.executeSql("CREATE TABLE transactions (\n" +
                 "    account_id  BIGINT,\n" +
                 "    amount      BIGINT,\n" +
@@ -66,6 +69,7 @@ public class SpendReport {
                 "    'format'    = 'csv'\n" +
                 ")");
 
+        // 一张统计表，作为输出，输出到 MySQL
         tEnv.executeSql("CREATE TABLE spend_report (\n" +
                 "    account_id BIGINT,\n" +
                 "    log_ts     TIMESTAMP(3),\n" +
@@ -81,6 +85,10 @@ public class SpendReport {
                 ")");
 
         Table transactions = tEnv.from("transactions");
-        report(transactions).executeInsert("spend_report");
+
+        // 将结果插入 MySQL 表中
+        report(transactions)
+                .executeInsert("spend_report");  // 结果插入 MySQL
     }
+
 }
