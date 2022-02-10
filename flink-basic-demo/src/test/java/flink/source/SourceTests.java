@@ -2,13 +2,16 @@ package flink.source;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 import org.apache.flink.api.common.RuntimeExecutionMode;
 import org.apache.flink.api.common.functions.FlatMapFunction;
+import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import org.apache.flink.util.Collector;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -77,6 +80,25 @@ public class SourceTests {
     @Test
     public void testSequenceAsSource2() throws Exception {
         DataStreamSource<Long> source = env.fromSequence(1, 10);
+        source.print();
+
+        env.execute();
+    }
+
+    /**
+     * kafka 作为 Source
+     *
+     * 按 SimpleProducer.java 中的操作，启动 kafka 即可做测试
+     */
+    @Test
+    public void testKafkaAsSource() throws Exception {
+        String topic = "simple-topic";
+        Properties properties = new Properties();
+        properties.setProperty("bootstrap.servers","localhost:9092");
+        properties.setProperty("group.id","test");
+
+        DataStreamSource<String> source =
+                env.addSource(new FlinkKafkaConsumer<>(topic, new SimpleStringSchema(), properties));
         source.print();
 
         env.execute();
