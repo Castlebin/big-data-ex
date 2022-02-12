@@ -101,6 +101,10 @@ public class HourlyTipsExercise {
         // 返回的 Tuple3 中第二个字段代表 tips ，所以用第二个字段做 max 计算
         DataStream<Tuple3<Long, Long, Float>> hourlyMax =
                 // TODO windowAll() 什么意思？不太理解啊
+                // 回答：windowAll() 是把所有元素都在一个窗口内计算（和 keyBy 的 window 做对比理解，keyBy 是会将元素按 key 分组，分成各自的窗口
+                // 所以，window 的并行度可以是多个，而 windowAll 的并行度是 1）
+                // 在 keyby 后数据分流，window 是把不同的key分开聚合成窗口，而 windowall 则把所有的key都聚合起来
+                // 所以 windowall的并行度只能为1，而window可以有多个并行度。
                 hourlyTips.windowAll(TumblingEventTimeWindows.of(Time.hours(1)))
                         .maxBy(2);
         hourlyMax.addSink(sink);
