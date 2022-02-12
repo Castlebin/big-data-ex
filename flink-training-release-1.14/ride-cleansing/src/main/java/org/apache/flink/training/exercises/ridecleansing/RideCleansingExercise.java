@@ -84,4 +84,7 @@ public class RideCleansingExercise {
                     && GeoUtils.isInNYC(taxiRide.endLon, taxiRide.endLat);
         }
     }
+
+
+
 }
