@@ -8,7 +8,7 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.util.Collector;
 
 /**
- * 一个更复杂点版的 flatMap , RichFlatMapFunction ，新增的  1.14.0 版本里还没有
+ * 一个更复杂点版的 flatMap , RichFlatMapFunction ，新增的  1.14.0 版本里还没有 (看原理其实可以自己在现有的API上实现)
  *
  * 定义了一个去重的方法，利用了 flink 的状态管理
  */
