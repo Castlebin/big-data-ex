@@ -13,11 +13,13 @@ import org.apache.flink.util.Collector;
  * 定义了一个去重的方法，利用了 flink 的状态管理
  *
  * 清理状态 #
- * 上面例子有一个潜在的问题：当键空间是无界的时候将发生什么？Flink 会对每个使用过的键都存储一个 Boolean
+ * 这个例子有一个潜在的问题：当键空间是无界的时候将发生什么？Flink 会对每个使用过的键都存储一个 Boolean
  * 类型的实例。如果是键是有限的集合还好，但在键无限增长的应用中，清除再也不会使用的状态是很必要的。这通过在状态对象上调用 clear() 来实现，如下：
  *
  * keyHasBeenSeen.clear()
  * 对一个给定的键值，你也许想在它一段时间不使用后来做这件事。
+ *
+ * 也可以选择使用 状态的过期时间（TTL），为状态描述符配置你想要旧状态自动被清除的时间。
  */
 public class Deduplicator<Event> extends RichFlatMapFunction<Event, Event> {
     ValueState<Boolean> keyHasBeenSeen;
