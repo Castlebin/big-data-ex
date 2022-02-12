@@ -19,17 +19,25 @@
 package org.apache.flink.training.exercises.hourlytips;
 
 import org.apache.flink.api.common.JobExecutionResult;
+import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.PrintSinkFunction;
 import org.apache.flink.streaming.api.functions.sink.SinkFunction;
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
+import org.apache.flink.streaming.api.functions.windowing.ProcessWindowFunction;
+import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows;
+import org.apache.flink.streaming.api.windowing.time.Time;
+import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
 import org.apache.flink.training.exercises.common.datatypes.TaxiFare;
 import org.apache.flink.training.exercises.common.sources.TaxiFareGenerator;
-import org.apache.flink.training.exercises.common.utils.MissingSolutionException;
+import org.apache.flink.util.Collector;
+
 
 /**
+ * 计算出每小时获得小费最多的司机和小费
+ *
  * The Hourly Tips exercise from the Flink training.
  *
  * <p>The task of the exercise is to first calculate the total tips collected by each driver, hour
@@ -40,7 +48,9 @@ public class HourlyTipsExercise {
     private final SourceFunction<TaxiFare> source;
     private final SinkFunction<Tuple3<Long, Long, Float>> sink;
 
-    /** Creates a job using the source and sink provided. */
+    /**
+     * Creates a job using the source and sink provided.
+     */
     public HourlyTipsExercise(
             SourceFunction<TaxiFare> source, SinkFunction<Tuple3<Long, Long, Float>> sink) {
 
@@ -73,21 +83,48 @@ public class HourlyTipsExercise {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
         // start the data generator
-        DataStream<TaxiFare> fares = env.addSource(source);
+        DataStream<TaxiFare> fares = env.addSource(source)
+                // 设置 watermarks
+                .assignTimestampsAndWatermarks(
+                        // taxi fares are in order  （这里假设事件完全是时间顺序的）
+                        WatermarkStrategy.<TaxiFare> forMonotonousTimestamps()
+                                .withTimestampAssigner(
+                                        (fare, t) -> fare.getEventTimeMillis()));
 
-        // replace this with your solution
-        if (true) {
-            throw new MissingSolutionException();
-        }
+        // compute tips per hour for each driver
+        DataStream<Tuple3<Long, Long, Float>> hourlyTips =
+                fares.keyBy(fare -> fare.driverId)
+                        .window(TumblingEventTimeWindows.of(Time.hours(1)))
+                        .process(new AddTips());
 
-        // the results should be sent to the sink that was passed in
-        // (otherwise the tests won't work)
-        // you can end the pipeline with something like this:
+        // find the driver with the highest sum of tips for each hour
+        // 返回的 Tuple3 中第二个字段代表 tips ，所以用第二个字段做 max 计算
+        DataStream<Tuple3<Long, Long, Float>> hourlyMax =
+                // TODO windowAll() 什么意思？不太理解啊
+                hourlyTips.windowAll(TumblingEventTimeWindows.of(Time.hours(1)))
+                        .maxBy(2);
+        hourlyMax.addSink(sink);
 
-        // DataStream<Tuple3<Long, Long, Float>> hourlyMax = ...
-        // hourlyMax.addSink(sink);
-
-        // execute the pipeline and return the result
         return env.execute("Hourly Tips");
     }
+
+
+    public static class AddTips
+            extends ProcessWindowFunction<TaxiFare, Tuple3<Long, Long, Float>, Long, TimeWindow> {
+
+        @Override
+        public void process(
+                Long key,
+                Context context,
+                Iterable<TaxiFare> fares,
+                Collector<Tuple3<Long, Long, Float>> out) {
+
+            float sumOfTips = 0F;
+            for (TaxiFare f : fares) {
+                sumOfTips += f.tip;
+            }
+            out.collect(Tuple3.of(context.window().getEnd(), key, sumOfTips));
+        }
+    }
+
 }
