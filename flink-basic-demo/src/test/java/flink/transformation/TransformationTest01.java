@@ -108,4 +108,32 @@ public class TransformationTest01 {
         env.execute("connect");
     }
 
+
+    /**
+     * 5. split & select 操作，拆分、选择        <br />
+     * （可怜，在 1.13.1 版本中被删除了，原因  ：      <br />
+     *  被删除的原因  <br />
+     * DataStream#split() has been deprecated in favour of using Side Outputs because:
+     *
+     * It is less performant, split() creates and checks against Strings for the splitting logic.
+     * split() was and is buggy : see FLINK-5031 and FLINK-11084, for example
+     * The semantics of consecutive splits are not very clear in general.
+     * Side outputs are more general and everything that could be done using split() can be achieved with side
+     * outputs with strictly better performance.
+     * 通俗点就是
+     * 性能不好,为啥性能不好,我也没有看懂,如果各位有看懂的,请私信我
+     * split函数有好几个bug
+     * ）
+     */
+    @Test
+    public void split_select() throws Exception {
+        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+
+        DataStreamSource<Long> source = env.fromSequence(1, 10);
+
+        // 该 API 已删除，推荐使用 Side outputs
+
+        env.execute("split_select");
+    }
+
 }
