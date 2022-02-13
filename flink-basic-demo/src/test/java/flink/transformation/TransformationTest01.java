@@ -71,7 +71,8 @@ public class TransformationTest01 {
     }
 
     /**
-     * 4. connect 操作 ，将两个流放到一起，返回一个 ConnectedStream，但两个流其实依然独立，
+     * 4. connect 操作 ，将两个流放到一起，返回一个 ConnectedStream，但两个流其实依然独立
+     *
      * 如果后续还要对 ConnectedStream 进行 map、flatMap、filter 等操作，必须传入两个对应的处理方法，分别对连接前的流1、流2 进行处理
      * 也就是说，连接后的流，内部其实依然保持独立！
      */
