@@ -19,12 +19,8 @@
 package org.apache.flink.training.exercises.ridesandfares;
 
 import org.apache.flink.api.common.JobExecutionResult;
-import org.apache.flink.api.common.state.ValueState;
-import org.apache.flink.api.common.state.ValueStateDescriptor;
-import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.co.RichCoFlatMapFunction;
 import org.apache.flink.streaming.api.functions.sink.PrintSinkFunction;
 import org.apache.flink.streaming.api.functions.sink.SinkFunction;
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
@@ -33,7 +29,6 @@ import org.apache.flink.training.exercises.common.datatypes.TaxiFare;
 import org.apache.flink.training.exercises.common.datatypes.TaxiRide;
 import org.apache.flink.training.exercises.common.sources.TaxiFareGenerator;
 import org.apache.flink.training.exercises.common.sources.TaxiRideGenerator;
-import org.apache.flink.util.Collector;
 
 /**
  * The Stateful Enrichment exercise from the Flink training.
@@ -97,40 +92,4 @@ public class RidesAndFaresExercise {
         job.execute();
     }
 
-    public static class EnrichmentFunction
-            extends RichCoFlatMapFunction<TaxiRide, TaxiFare, RideAndFare> {
-        ValueState<TaxiRide> taxiRideHasBeenSeen;
-        ValueState<TaxiFare> taxiFareHasBeenSeen;
-
-        @Override
-        public void open(Configuration config) throws Exception {
-            taxiRideHasBeenSeen =
-                    getRuntimeContext()
-                            .getState(new ValueStateDescriptor<>("taxiRideHasBeenSeen", TaxiRide.class));
-            taxiFareHasBeenSeen =
-                    getRuntimeContext()
-                            .getState(new ValueStateDescriptor<>("taxiFareHasBeenSeen", TaxiFare.class));
-        }
-
-        @Override
-        public void flatMap1(TaxiRide ride, Collector<RideAndFare> out) throws Exception {
-            taxiRideHasBeenSeen.update(ride);
-            if (taxiFareHasBeenSeen.value() != null) {
-                out.collect(new RideAndFare(ride, taxiFareHasBeenSeen.value()));
-                taxiRideHasBeenSeen.clear();
-                taxiFareHasBeenSeen.clear();
-            }
-        }
-
-        @Override
-        public void flatMap2(TaxiFare fare, Collector<RideAndFare> out) throws Exception {
-            taxiFareHasBeenSeen.update(fare);
-            if (taxiRideHasBeenSeen.value() != null) {
-                out.collect(new RideAndFare(taxiRideHasBeenSeen.value(), fare));
-                taxiRideHasBeenSeen.clear();
-                taxiFareHasBeenSeen.clear();
-            }
-        }
-
-    }
 }
