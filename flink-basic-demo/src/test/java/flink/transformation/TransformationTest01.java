@@ -53,4 +53,19 @@ public class TransformationTest01 {
         env.execute("flatMap");
     }
 
+    /**
+     * 3. filter 操作    过滤
+     */
+    @Test
+    public void filter() throws Exception {
+        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+
+        DataStreamSource<Long> source = env.fromSequence(1, 10);
+        source
+                .filter(x -> x % 2 == 0)
+                .print();
+
+        env.execute("filter");
+    }
+
 }
