@@ -73,7 +73,7 @@ public class TransformationTest01 {
     /**
      * 4. connect 操作 ，将两个流放到一起，返回一个 ConnectedStream，但两个流其实依然独立
      *
-     * 如果后续还要对 ConnectedStream 进行 map、flatMap、filter 等操作，必须传入两个对应的处理方法，分别对连接前的流1、流2 进行处理
+     * 如果后续还要对 ConnectedStream 进行 map （其实是 CoMap 了）、flatMap (其实是 CoFlatMap 了) 等操作，必须传入两个对应的处理方法，分别对连接前的流1、流2 进行处理
      * 也就是说，连接后的流，内部其实依然保持独立！
      */
     @Test
@@ -86,6 +86,7 @@ public class TransformationTest01 {
         ConnectedStreams<Long, String> connected = stream01
                 .connect(stream02);
 
+        // 注意类型 CoMapFunction
         connected.map(new CoMapFunction<Long, String, Object>() {
 
             // 这里实现对连接前的 流1 的操作
