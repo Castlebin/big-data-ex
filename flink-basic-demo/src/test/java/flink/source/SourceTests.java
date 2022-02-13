@@ -127,7 +127,7 @@ public class SourceTests {
 
     /**
      * 文本单词统计
-     * （批处理，所有数据只输出一次结果，可以看到是正常的单词统计结果）
+     * （用批处理，所有数据只输出一次结果，可以看到是正常的单词统计结果。用流处理会是不一样的结果，想想为什么？）
      */
     @Test
     public void wordCountFile_2() throws Exception {
