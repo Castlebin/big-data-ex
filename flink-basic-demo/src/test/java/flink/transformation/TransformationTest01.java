@@ -131,7 +131,7 @@ public class TransformationTest01 {
 
         DataStreamSource<Long> source = env.fromSequence(1, 10);
 
-        // 该 API 已删除，推荐使用 Side outputs
+        // split & select 已被删除，推荐使用 Side outputs
 
         env.execute("split_select");
     }
