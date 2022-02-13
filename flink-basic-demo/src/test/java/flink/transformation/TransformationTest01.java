@@ -2,6 +2,7 @@ package flink.transformation;
 
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.streaming.api.datastream.ConnectedStreams;
+import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.co.CoMapFunction;
@@ -134,6 +135,24 @@ public class TransformationTest01 {
         // split & select 已被删除，推荐使用 Side outputs
 
         env.execute("split_select");
+    }
+
+    /**
+     * 6. union 操作  将两个 DataStream 合并成一个 DataStream  ，注意和 connect 的区别
+     */
+    @Test
+    public void union() throws Exception {
+        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+
+        DataStream<Long> dataStream01 = env.fromSequence(1, 4);
+        DataStream<Long> dataStream02 = env.fromSequence(20, 25);
+
+        DataStream<Long> union = dataStream01
+                .union(dataStream02);
+
+        union.print();
+
+        env.execute("union");
     }
 
 }
