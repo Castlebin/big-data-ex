@@ -20,6 +20,8 @@ public class TransformationTest02 {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
         DataStream<String> source = env.readTextFile("data/hello-world.txt");
+
+        // 1. 对每行数据进行 单词分割
         DataStream<String> wordStream =
                 source.flatMap(new FlatMapFunction<String, String>() {
                     @Override
@@ -30,6 +32,8 @@ public class TransformationTest02 {
                         }
                     }
                 });
+
+        // 2. 将分割好的单词，转化为 (word, 1) 形式的 tuple , 便于后面做单词数目统计
         DataStream<Tuple2<String, Integer>> wordCountStream = wordStream
                 .map(new MapFunction<String, Tuple2<String, Integer>>() {
                     @Override
@@ -37,6 +41,8 @@ public class TransformationTest02 {
                         return new Tuple2<>(word, 1);
                     }
                 });
+
+        // 3. keyBy 操作，将流转化为 KeyedStream ，便于后面对每个单词执行统计
         KeyedStream<Tuple2<String, Integer>, Tuple> keyedStream = wordCountStream.keyBy(0);
 
         // keyBy  可以看到，打印出来的结果，同样的key，分配到同一个 taskSlot 上进行处理的
