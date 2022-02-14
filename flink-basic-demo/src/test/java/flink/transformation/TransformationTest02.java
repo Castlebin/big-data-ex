@@ -45,7 +45,7 @@ public class TransformationTest02 {
         // 3. keyBy 操作，将流转化为 KeyedStream ，便于后面对每个单词执行统计   （这里的 0 表示 按 tuple 的 0 号位 字段 keyBy）
         KeyedStream<Tuple2<String, Integer>, Tuple> keyedStream = wordCountStream.keyBy(0);
 
-        // keyBy  可以看到，打印出来的结果，同样的key，分配到同一个 taskSlot 上进行处理的
+        // keyBy  可以看到，打印出来的结果，同样的key，分配到同一个 线程 上进行处理的
         keyedStream.print();
 
         env.execute("keyBy");
