@@ -54,7 +54,7 @@ public class TransformationTest02 {
 
 
     /**
-     * 2. reduce
+     * 2. reduce 1
      */
     @Test
     public void reduce01() throws Exception {
@@ -105,7 +105,7 @@ public class TransformationTest02 {
          */
         reducedStream.print();
 
-        env.execute("keyBy");
+        env.execute("reduce01");
     }
 
 }
