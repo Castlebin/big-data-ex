@@ -39,6 +39,7 @@ public class Window01 {
                 .keyBy(0);
 
         WindowedStream<Tuple2<String, Long>, Tuple, GlobalWindow> countWindowedStream =
+                // 设定滚动窗口大小
                 // 注意，这里的 5，表示的是 同一个 key 出现 5 次 ，可以在观察输出时发现，并不是所有单词每输入5个就执行一次窗口计算
                 keyedStream.countWindow(5);
         DataStream<Tuple2<String, Long>> wordCountStream =
