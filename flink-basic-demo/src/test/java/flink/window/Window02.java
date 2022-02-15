@@ -8,6 +8,7 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.KeyedStream;
 import org.apache.flink.streaming.api.datastream.WindowedStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.windowing.assigners.TumblingProcessingTimeWindows;
 import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
 import org.junit.jupiter.api.Test;
@@ -60,6 +61,39 @@ public class Window02 {
         wordCountStream.print();
 
         env.execute("timeWindow00");
+    }
+
+    // 新的滚动窗口APi的基本用法  TumblingProcessingTimeWindows
+    @Test
+    public void timeWindows01() throws Exception {
+        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        // Socket 输入作为数据源，方便起见，每行一个单词
+        DataStream<String> source = env.socketTextStream("localhost", 11111);
+
+        KeyedStream<Tuple2<String, Long>, Tuple> keyedStream = source
+                .map(new MapFunction<String, Tuple2<String, Long>>() {
+                    @Override
+                    public Tuple2<String, Long> map(String word) throws Exception {
+                        return new Tuple2<>(word, 1L);
+                    }
+                })
+                .keyBy(0);
+
+        WindowedStream<Tuple2<String, Long>, Tuple, TimeWindow> timeWindowStream =
+                keyedStream.window(TumblingProcessingTimeWindows.of(Time.seconds(10)));
+
+        DataStream<Tuple2<String, Long>> wordCountStream =
+                timeWindowStream.reduce(new ReduceFunction<Tuple2<String, Long>>() {
+                    @Override
+                    public Tuple2<String, Long> reduce(Tuple2<String, Long> t1, Tuple2<String, Long> t2)
+                            throws Exception {
+                        return new Tuple2<>(t1.f0, t1.f1 + t2.f1);
+                    }
+                });
+        // 对 keyedStream 执行 窗口计算
+        wordCountStream.print();
+
+        env.execute("timeWindows01");
     }
 
 }
