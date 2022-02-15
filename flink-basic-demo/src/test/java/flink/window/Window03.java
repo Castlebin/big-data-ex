@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Test;
  */
 public class Window03 {
 
+
     /**
      * 1. 以 EventTime 作为 Timestamps 的单词统计，带时间窗口
      * （使用了一些老的 API 方式，新的 API 已经不是这么用了，好像更简洁些）
@@ -32,7 +33,7 @@ public class Window03 {
     @Test
     public void timeWindow01() throws Exception {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        // 1. 设置使用 EventTime
+        // 1. 设置使用 EventTime  （Flink 1.12 开始默认希望处理 ProcessTime 了，所以这种用法废弃）
         env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
 
         // Socket 输入作为数据源，每行两个字段，第一个表示时间戳，第二个是单词，空格分割
