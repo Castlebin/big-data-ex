@@ -1,5 +1,7 @@
 package flink.source;
 
+import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -7,7 +9,9 @@ import java.util.Properties;
 import org.apache.flink.api.common.RuntimeExecutionMode;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.FlatMapFunction;
+import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
+import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
@@ -129,6 +133,26 @@ public class SourceTests {
 
         env.execute();
     }
+    // 配置一个解码器，直接把 kafka 消息，解析为一个对象
+    @Test
+    public void testKafkaSource2() throws Exception {
+        String topic = "simple-topic";
+
+        KafkaSource<Person> kafkaSource = KafkaSource.<Person>builder()
+                .setBootstrapServers("localhost:9092")
+                .setTopics(topic)
+                .setGroupId("my-group")
+                // 改成从kafka最新位点读
+                .setStartingOffsets(OffsetsInitializer.latest())
+                .setValueOnlyDeserializer(new MyPersonDeserializer())
+                .build();
+
+        DataStreamSource<Person> source =
+                env.fromSource(kafkaSource, WatermarkStrategy.noWatermarks(), "Kafka Source");
+        source.print();
+
+        env.execute();
+    }
 
     /**
      * 文本单词统计
@@ -180,5 +204,63 @@ public class SourceTests {
         }
     }
 
+    public static class Person implements Serializable {
+        private String name;
+        private int age;
 
+        public Person() {}
+
+        public Person(String name, int age) {
+            this.name = name;
+            this.age = age;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public int getAge() {
+            return age;
+        }
+
+        public void setAge(int age) {
+            this.age = age;
+        }
+
+        @Override
+        public String toString() {
+            return "Person{" +
+                    "name='" + name + '\'' +
+                    ", age=" + age +
+                    '}';
+        }
+    }
+
+    private static class MyPersonDeserializer implements DeserializationSchema<Person> {
+        @Override
+        public Person deserialize(byte[] bytes) throws IOException {
+            String line = new String(bytes);
+            try {
+                String[] split = line.split("\\s+");
+                return new Person(split[0], Integer.parseInt(split[1]));
+            } catch (Exception e) {
+                System.out.println("字符串：" + line + "，格式不符合 Person 解析格式");
+                return null;
+            }
+        }
+
+        @Override
+        public boolean isEndOfStream(Person person) {
+            return false;
+        }
+
+        @Override
+        public TypeInformation<Person> getProducedType() {
+            return TypeInformation.of(Person.class);
+        }
+    }
 }
