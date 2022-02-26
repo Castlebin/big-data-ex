@@ -158,7 +158,7 @@ public class SourceTests {
     }
 
     /**
-     * 自定义 Source （实现 SourceFunction 接口 ）
+     * 自定义 Source （实现 SourceFunction 接口 , 还有个子接口，RichSourceFunction，用它的话可以，可以实现更丰富的功能，例如：状态管理）
      * MyPersonSource 实现了 SourceFunction 接口
      */
     @Test
