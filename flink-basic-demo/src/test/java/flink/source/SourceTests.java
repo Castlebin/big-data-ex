@@ -6,17 +6,21 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.Random;
 
 import org.apache.flink.api.common.RuntimeExecutionMode;
+import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.FlatMapFunction;
+import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
+import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -25,6 +29,8 @@ import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import org.apache.flink.util.Collector;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
+import flink.pojo.UserReport;
 
 public class SourceTests {
 
@@ -302,6 +308,41 @@ public class SourceTests {
         public void cancel() {
             this.running = false;
         }
+    }
+
+    @Test
+    public void testReportData() throws Exception {
+        // data/2.txt  直接用读取文件方式，会有编码问题，不可见字符！辣鸡玩意儿！
+        DataStreamSource<String> source = env.socketTextStream("localhost", 11111);
+
+        DataStream<UserReport> dataStream = source.map(new MapFunction<String, UserReport>() {
+            @Override
+            public UserReport map(String line) throws Exception {
+                String[] values = line.split(",");
+                try {
+                    UserReport report = new UserReport();
+                    report.setCreativeId(Long.parseLong(values[0]));
+                    report.setUnitId(Long.parseLong(values[1]));
+                    report.setAccountId(Long.parseLong(values[2]));
+                    report.setPhotoId(Long.parseLong(values[3]));
+                    report.setUserId(Long.parseLong(values[4]));
+                    report.setCreateTime(Long.parseLong(values[5]));
+                    report.setAdminId(Long.parseLong(values[6]));
+                    report.setAdminTime(Long.parseLong(values[7]));
+
+                    System.out.println(line);
+                    return report;
+                } catch (Exception e) {
+                    // e.printStackTrace();
+                    System.out.println(line + " 不是有效数据行");
+                }
+                return null;
+            }
+        }).filter((FilterFunction<UserReport>) Objects::nonNull);
+
+        dataStream.print();
+
+        env.execute();
     }
 
 }
