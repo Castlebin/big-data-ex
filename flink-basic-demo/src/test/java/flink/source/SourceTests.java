@@ -5,9 +5,12 @@ import java.util.List;
 import java.util.Properties;
 
 import org.apache.flink.api.common.RuntimeExecutionMode;
+import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.api.java.tuple.Tuple2;
+import org.apache.flink.connector.kafka.source.KafkaSource;
+import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -99,6 +102,29 @@ public class SourceTests {
 
         DataStreamSource<String> source =
                 env.addSource(new FlinkKafkaConsumer<>(topic, new SimpleStringSchema(), properties));
+        source.print();
+
+        env.execute();
+    }
+
+    /**
+     * FlinkKafkaConsumer 已经废弃，用 KafkaSource 代替
+     * https://nightlies.apache.org/flink/flink-docs-release-1.14/docs/connectors/datastream/kafka/#kafka-source
+     */
+    @Test
+    public void testKafkaSource() throws Exception {
+        String topic = "simple-topic";
+
+        KafkaSource<String> kafkaSource = KafkaSource.<String>builder()
+                .setBootstrapServers("localhost:9092")
+                .setTopics(topic)
+                .setGroupId("my-group")
+                .setStartingOffsets(OffsetsInitializer.earliest())
+                .setValueOnlyDeserializer(new SimpleStringSchema())
+                .build();
+
+        DataStreamSource<String> source =
+                env.fromSource(kafkaSource, WatermarkStrategy.noWatermarks(), "Kafka Source");
         source.print();
 
         env.execute();
