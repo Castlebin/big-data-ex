@@ -1,13 +1,15 @@
 package flink.source;
 
+import static org.apache.flink.api.common.eventtime.WatermarkStrategy.noWatermarks;
+
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.Random;
 
 import org.apache.flink.api.common.RuntimeExecutionMode;
-import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
@@ -18,6 +20,7 @@ import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsIni
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.functions.source.SourceFunction;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import org.apache.flink.util.Collector;
 import org.junit.jupiter.api.BeforeAll;
@@ -128,7 +131,7 @@ public class SourceTests {
                 .build();
 
         DataStreamSource<String> source =
-                env.fromSource(kafkaSource, WatermarkStrategy.noWatermarks(), "Kafka Source");
+                env.fromSource(kafkaSource, noWatermarks(), "Kafka Source");
         source.print();
 
         env.execute();
@@ -148,7 +151,20 @@ public class SourceTests {
                 .build();
 
         DataStreamSource<Person> source =
-                env.fromSource(kafkaSource, WatermarkStrategy.noWatermarks(), "Kafka Source");
+                env.fromSource(kafkaSource, noWatermarks(), "Kafka Source");
+        source.print();
+
+        env.execute();
+    }
+
+    /**
+     * 自定义 Source （实现 SourceFunction 接口 ）
+     * MyPersonSource 实现了 SourceFunction 接口
+     */
+    @Test
+    public void testMySource() throws Exception {
+        DataStreamSource<Person> source = env.addSource(new MyPersonSource());
+
         source.print();
 
         env.execute();
@@ -263,4 +279,29 @@ public class SourceTests {
             return TypeInformation.of(Person.class);
         }
     }
+
+    private static class MyPersonSource implements SourceFunction<Person> {
+        private volatile boolean running = true;
+
+        private String[] names = new String[] {"张三", "李四", "王五", "赵六"};
+        private int[] ages = new int[] {18, 17, 20, 19, 25, 37};
+        private Random random = new Random(100);
+
+        @Override
+        public void run(SourceContext<Person> sourceContext) throws Exception {
+            while (running) {
+                String name = names[random.nextInt(names.length)];
+                int age = ages[random.nextInt(ages.length)];
+                sourceContext.collect(new Person(name, age));
+
+                Thread.sleep(1000);
+            }
+        }
+
+        @Override
+        public void cancel() {
+            this.running = false;
+        }
+    }
+
 }
