@@ -76,4 +76,18 @@ public class UserReport implements Serializable {
     public void setAdminTime(long adminTime) {
         this.adminTime = adminTime;
     }
+
+    @Override
+    public String toString() {
+        return "UserReport{" +
+                "creativeId=" + creativeId +
+                ", unitId=" + unitId +
+                ", accountId=" + accountId +
+                ", photoId=" + photoId +
+                ", userId=" + userId +
+                ", createTime=" + createTime +
+                ", adminId=" + adminId +
+                ", adminTime=" + adminTime +
+                '}';
+    }
 }
