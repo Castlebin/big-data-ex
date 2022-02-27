@@ -55,7 +55,7 @@ public class CEP1 {
         KeyedStream<LogEvent, Long> keyedStream = events.keyBy(LogEvent::getUserId);
 
         // CEP 事件处理
-        // 1. 首先，定义模式
+        // 1. 首先，定义模式 （begin 登录事件 followedBy 一条登出事件）
         Pattern<LogEvent, LogEvent> pattern = Pattern.<LogEvent> begin("login").where(
                 new SimpleCondition<LogEvent>() {
                     @Override
