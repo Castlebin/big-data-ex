@@ -1,4 +1,4 @@
-﻿creative_id,unit_id,account_id,photo_id,user_id,create_time,admin_id,admin_time
+creative_id,unit_id,account_id,photo_id,user_id,create_time,admin_id,admin_time
 55875,24918,9369,250840,97,1645373712634,3131,1645521286387
 80413,52259,2714,310507,69133,1645374238885,3131,1645521295303
 85947,99120,9238,104525,8911,1645374431124,3131,1645521303354
