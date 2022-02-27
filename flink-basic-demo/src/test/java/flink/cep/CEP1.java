@@ -21,7 +21,9 @@ import org.junit.jupiter.api.Test;
 
 import flink.pojo.LogEvent;
 
-// Flink CEP doc ： https://nightlies.apache.org/flink/flink-docs-release-1.14/zh/docs/libs/cep/
+/**
+ * Flink CEP doc ： https://nightlies.apache.org/flink/flink-docs-release-1.14/zh/docs/libs/cep/
+ */
 public class CEP1 {
 
     @Test
