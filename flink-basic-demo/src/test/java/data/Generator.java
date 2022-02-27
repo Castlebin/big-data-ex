@@ -2,6 +2,7 @@ package data;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -12,6 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import com.google.common.base.Joiner;
 
+import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
 
 public class Generator {
@@ -31,7 +33,8 @@ public class Generator {
             long time = random.nextInt((int) (endTime - beginTime)) + beginTime;
             long userId = userIds.get(random.nextInt(userIds.size()));
             String logType = logTypes.get(random.nextInt(logTypes.size()));
-            events.add(Joiner.on(',').join(time, userId, logType));
+            events.add(Joiner.on(',').join(time, userId, logType,
+                    DateUtil.format(new Date(time), DatePattern.NORM_DATETIME_FORMAT)));
         }
         events.stream()
                 .sorted()
@@ -76,7 +79,8 @@ public class Generator {
             long hostId = RandomUtils.nextLong(10, 17);
             long fanId = RandomUtils.nextLong(1000, 1030);
             long giftCount = RandomUtils.nextLong(1, 100);
-            events.add(Joiner.on(',').join(time, hostId, fanId, giftCount));
+            events.add(Joiner.on(',').join(time, hostId, fanId, giftCount,
+                    DateUtil.format(new Date(time), DatePattern.NORM_DATETIME_FORMAT)));
         }
         events.stream()
                 .sorted()
