@@ -159,6 +159,14 @@
 			<version>${flink.version}</version>
 		</dependency>
 
+        <!-- CEP （复杂时间处理，可以提供事件规则匹配） -->
+        <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-cep_${scala.binary.version}</artifactId>
+            <version>${flink.version}</version>
+        </dependency>
+
+
         <dependency>
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
