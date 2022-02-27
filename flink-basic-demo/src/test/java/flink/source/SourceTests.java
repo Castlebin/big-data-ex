@@ -312,7 +312,7 @@ public class SourceTests {
 
     @Test
     public void testReportData() throws Exception {
-        // data/2.txt  直接用读取文件方式，会有编码问题，不可见字符！辣鸡玩意儿！
+        // data/2.txt  直接用读取文件方式，会有编码问题，不可见字符！辣鸡玩意儿！UTF-8-With-BOM 的问题，文件转为 UTF-8 就没事了
         DataStreamSource<String> source = env.socketTextStream("localhost", 11111);
 
         DataStream<UserReport> dataStream = source.map(new MapFunction<String, UserReport>() {
@@ -329,8 +329,6 @@ public class SourceTests {
                     report.setCreateTime(Long.parseLong(values[5]));
                     report.setAdminId(Long.parseLong(values[6]));
                     report.setAdminTime(Long.parseLong(values[7]));
-
-                    System.out.println(line);
                     return report;
                 } catch (Exception e) {
                     // e.printStackTrace();
