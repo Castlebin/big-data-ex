@@ -195,7 +195,7 @@ public class Test02 {
 
         request.add(new IndexRequest("user").id("1004").source(XContentType.JSON, "name", "赵六", "age", 24));
         request.add(new UpdateRequest("user", "1005").doc(XContentType.JSON, "name", "七七", "age", 24));
-        request.add(new UpdateRequest("user", "1005").doc(XContentType.JSON, "name", "八八", "age", 24));
+        request.add(new UpdateRequest("user", "1006").doc(XContentType.JSON, "name", "八八", "age", 24));
 
         //客户端发送请求，获取响应对象
         BulkResponse responses = client.bulk(request, RequestOptions.DEFAULT);
