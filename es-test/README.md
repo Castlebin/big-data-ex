@@ -2,3 +2,5 @@
 https://www.bilibili.com/video/BV1hh411D7sb
 
 笔记：https://blog.csdn.net/u011863024/article/details/115721328
+
+## ES API 全是 HTTP Restful API
