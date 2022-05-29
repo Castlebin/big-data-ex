@@ -5,8 +5,11 @@ import static com.heller.es.EsServerConfig.PORT;
 import static com.heller.es.EsServerConfig.SCHEMA;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import org.apache.http.HttpHost;
+import org.elasticsearch.action.bulk.BulkRequest;
+import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.delete.DeleteRequest;
 import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.get.GetRequest;
@@ -134,6 +137,71 @@ public class Test02 {
         DeleteResponse response = client.delete(request, RequestOptions.DEFAULT);
         //打印信息
         System.out.println(response.toString());
+    }
+
+    /**
+     * 批量新增
+     */
+    @Test
+    void bulkCreate() throws IOException {
+        // 创建请求对象
+        BulkRequest request = new BulkRequest();
+        // 添加批量请求
+        request.add(new IndexRequest("user").id("1001").source(XContentType.JSON, "name", "张三", "age", 18));
+        request.add(new IndexRequest("user").id("1002").source(XContentType.JSON, "name", "李四", "age", 20));
+        request.add(new IndexRequest("user").id("1003").source(XContentType.JSON, "name", "王五", "age", 22));
+
+        //客户端发送请求，获取响应对象
+        BulkResponse responses = client.bulk(request, RequestOptions.DEFAULT);
+        //打印结果信息
+        System.out.println("took:" + responses.getTook());
+        System.out.println("items:" + Arrays.toString(responses.getItems()));
+    }
+
+    /**
+     * 批量删除
+     */
+    @Test
+    void bulkDelete() throws IOException {
+        // 创建请求对象
+        BulkRequest request = new BulkRequest();
+        // 添加批量请求
+        request.add(new DeleteRequest("user").id("1002"));
+        request.add(new DeleteRequest("user").id("1003"));
+
+        //客户端发送请求，获取响应对象
+        BulkResponse responses = client.bulk(request, RequestOptions.DEFAULT);
+        //打印结果信息
+        System.out.println("took:" + responses.getTook());
+        System.out.println("items:" + Arrays.toString(responses.getItems()));
+    }
+
+    /**
+     * 批量操作（混合），可以看到 BulkRequest 只是将批量请求封装成了一个对象，将多个请求打包发送而已
+     */
+    @Test
+    void bulkMixed() throws IOException {
+        // 创建请求对象
+        BulkRequest request = new BulkRequest();
+        // 添加批量请求
+        request.add(new DeleteRequest("user").id("1002"));
+        request.add(new DeleteRequest("user").id("1003"));
+
+        request.add(new IndexRequest("user").id("1001").source(XContentType.JSON, "name", "张三", "age", 18));
+        request.add(new IndexRequest("user").id("1002").source(XContentType.JSON, "name", "李四", "age", 20));
+        request.add(new IndexRequest("user").id("1003").source(XContentType.JSON, "name", "王五", "age", 22));
+
+        request.add(new UpdateRequest("user", "1001").doc(XContentType.JSON, "name", "李四", "age", 18));
+
+        request.add(new IndexRequest("user").id("1004").source(XContentType.JSON, "name", "赵六", "age", 24));
+        request.add(new UpdateRequest("user", "1005").doc(XContentType.JSON, "name", "七七", "age", 24));
+        request.add(new UpdateRequest("user", "1005").doc(XContentType.JSON, "name", "八八", "age", 24));
+
+        //客户端发送请求，获取响应对象
+        BulkResponse responses = client.bulk(request, RequestOptions.DEFAULT);
+        //打印结果信息
+        System.out.println("took:" + responses.getTook());
+        System.out.println("items:" + Arrays.toString(responses.getItems()));
     }
 
 }
