@@ -23,9 +23,10 @@
         <maven.compiler.target>${java.version}</maven.compiler.target>
 
         <junit5.version>5.8.2</junit5.version>
+        <lombok.version>1.18.24</lombok.version>
         <hutool.version>5.7.22</hutool.version>
         <guava.version>31.1-jre</guava.version>
-        <lombok.version>1.18.24</lombok.version>
+        <jackson.version>2.13.3</jackson.version>
 
         <es-client.version>7.8.0</es-client.version>
     </properties>
@@ -58,6 +59,12 @@
             <artifactId>guava</artifactId>
             <version>${guava.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+
 
         <!-- ES依赖 -->
         <dependency>
