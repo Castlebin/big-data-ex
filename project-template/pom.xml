@@ -23,9 +23,9 @@
         <maven.compiler.target>${java.version}</maven.compiler.target>
 
         <junit5.version>5.8.2</junit5.version>
-        <hutool.version>5.7.22</hutool.version>
-        <guava.version>31.1-jre</guava.version>
         <lombok.version>1.18.24</lombok.version>
+        <guava.version>31.1-jre</guava.version>
+        <hutool.version>5.7.22</hutool.version>
     </properties>
 
     <dependencies>
@@ -45,16 +45,15 @@
             <scope>provided</scope>
             <optional>true</optional>
         </dependency>
-
-        <dependency>
-            <groupId>cn.hutool</groupId>
-            <artifactId>hutool-all</artifactId>
-            <version>${hutool.version}</version>
-        </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <version>${guava.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-all</artifactId>
+            <version>${hutool.version}</version>
         </dependency>
     </dependencies>
 
